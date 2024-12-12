@@ -1,3 +1,4 @@
 tqdm
 openai
+zhipuai
 requests

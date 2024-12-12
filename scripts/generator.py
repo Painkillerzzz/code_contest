@@ -43,6 +43,18 @@ You can refer to the algorithm below:
 Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
 """
 
+# Complete prompt template for generating C++11 code based on a problem description.
+complete_prompt = """
+Complete an incomplete C++11 solution for the following competitive programming question: 
+{problem_description}
+Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
+The standard is C++11, please do not use third-party libraries that are not included in the standard library.
+The incomplete code is as follows. You should not modify the finished part.
+```cpp
+{incomplete_code}
+```
+"""
+
 # Base class for code generation, which contains shared methods and attributes.
 class Generator:
     def __init__(self, problem_description):
@@ -167,9 +179,27 @@ class GLMGenerator(Generator):
         message = {"role": "user", "content": prompt}
         response = generate_response(messages=[message])
         return self._extract_c_code(response)
+    
+    
+# Class for generating code using the GLM model.
+class GLMGeneratorTree(Generator):
+    def __init__(self, problem_description):
+        super().__init__(problem_description)
+
+    # Similar methods as GPT4Generator, adjusted for GLM model usage.
+    def generate_code(self, feedback: str = None, n: int = 1) -> List[str]:
+        if feedback:
+            prompt = complete_prompt.format(problem_description=self.problem_description, incomplete_code=feedback)
+        else:
+            prompt = init_prompt.format(problem_description=self.problem_description)
+        
+        message = {"role": "user", "content": prompt}
+        rsp_list = generate_response(messages=[message], n=n)
+        return [self._extract_c_code(response) for response in rsp_list]
 
 # Dictionary mapping generator types to their respective classes.
 GENERATOR_TYPE = {
     "gpt-4o": GPT4Generator,
-    "glm": GLMGenerator
+    "glm": GLMGenerator,
+    "glm_tree": GLMGeneratorTree
 }

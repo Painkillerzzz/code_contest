@@ -3,16 +3,12 @@ import sys
 import json
 import argparse
 from openai import OpenAI
+from zhipuai import ZhipuAI
 from typing import List, Dict, Any
 
-# Initialize the OpenAI client with API key, base URL, and retry settings.
-client = OpenAI(
-    api_key="98903f4152cd6b8cc8a1d4d16ff11a59.JO98BUYm6Bl4YVFf",  # Your API key here.
-    base_url="https://open.bigmodel.cn/api/paas/v4",  # Base URL for the API.
-    max_retries=5,  # Maximum number of retry attempts for failed requests.
-)
+client = ZhipuAI(api_key="98903f4152cd6b8cc8a1d4d16ff11a59.JO98BUYm6Bl4YVFf")
 
-def generate_response(messages: List[Dict[str, str]]) -> str:
+def generate_response(messages: List[Dict[str, str]], n: int = 1) -> str:
     """
     Generate a response from the model using the provided messages.
 
@@ -22,20 +18,21 @@ def generate_response(messages: List[Dict[str, str]]) -> str:
     Returns:
         str: The response content from the model.
     """
-    try:
-        # Request a chat completion from the model.
-        response = client.chat.completions.create(
-            model="codegeex-4",  # Specify the model to use.
-            messages=messages,  # Provide the conversation history.
-            temperature=0,  # Set temperature for deterministic responses.
-        ).choices[0].message.content  # Extract the content of the response message.
-        
-        # Ensure the response is not empty.
-        assert response != ""
-        return response
-    except:
-        # Return an empty string in case of an error.
-        return ""
+    rsp_list = []
+    for _ in range(n):
+        try:
+            # Request a chat completion from the model.
+            response = client.chat.completions.create(
+                model="codegeex-4",  # Specify the model to use.
+                messages=messages,  # Provide the conversation history.
+                temperature=0.9,  # Set temperature for deterministic responses.
+            ).choices[0].message.content
+            rsp_list.append(response)
+        except:
+            # Return an empty string in case of an error.
+            pass
+
+    return rsp_list
 
 def parse_args():
     """

@@ -2,6 +2,8 @@ import subprocess
 import json
 from tqdm import tqdm
 from typing import Any, Dict, List, Tuple
+from mcts import MCTSTree
+from evaluator import Evaluator
 from generator import Generator, GENERATOR_TYPE
 from utils import read_jsonl, parse_args
 
@@ -124,7 +126,7 @@ if __name__ == "__main__":
     
     results = []
     
-    for test_case in tqdm(data, desc="Generating"):
+    for test_case in tqdm(data[:2], desc="Generating"):
         
         # result = evaluate_problem(
         #     problem_description=test_case["description"],
@@ -135,7 +137,17 @@ if __name__ == "__main__":
         #     memory_limit=test_case["memory_limit_bytes"],  # Assuming memory limit is in bytes
         #     iterations=iterations
         # )
-        code_file = solve_problem(test_case["description"], None, test_case["inputs"], test_case["outputs"])
+        
+        # code_file = solve_problem(test_case["description"], None, test_case["inputs"], test_case["outputs"])
+        try:
+            generator: Generator = GENERATOR_TYPE[model_name](test_case["description"])
+        except KeyError:
+            raise ValueError(f"Model unavailable! Choose from: {list(GENERATOR_TYPE.keys())}")
+        
+        evaluator = Evaluator(test_case["inputs"], test_case["outputs"])
+        
+        mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = 3, step = 3, budget = 3)
+        code_file = mcts.search()
         results.append({
             "question_id": test_case["id"],
             "code_file": code_file,
