@@ -36,9 +36,11 @@ def run_single_input(exe_file_path: str, input_data: str, timeout: int) -> Dict[
         stdout, stderr = process.communicate(input=input_data, timeout=timeout)
         result["stdout"] = stdout.strip()
         result["stderr"] = stderr.strip()
+        process.wait()
         result["error"] = "" if process.returncode == 0 else f"Return code: {process.returncode}"
     except subprocess.TimeoutExpired:
         process.kill()
+        process.wait()
         result["error"] = f"Execution timed out after {timeout} seconds"
     except Exception as e:
         result["error"] = str(e)
@@ -72,7 +74,7 @@ def run_code_with_inputs(code: str, inputs: List[str], timeout: int = 5) -> List
             cpp_file_path = cpp_file.name
 
         # Create a temporary file path for the compiled executable
-        exe_file_path = cpp_file_path.replace(".cpp", "")
+        exe_file_path = cpp_file_path.replace(".cpp", ".exe")
 
         # Compile the C++ code
         compile_cmd = ["g++", "-std=c++11", cpp_file_path, "-o", exe_file_path]
