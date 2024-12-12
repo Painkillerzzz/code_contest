@@ -126,7 +126,7 @@ if __name__ == "__main__":
     
     results = []
     
-    for test_case in tqdm(data[:2], desc="Generating"):
+    for test_case in tqdm(data, desc="Generating"):
         
         # result = evaluate_problem(
         #     problem_description=test_case["description"],
@@ -146,7 +146,7 @@ if __name__ == "__main__":
         
         evaluator = Evaluator(test_case["inputs"], test_case["outputs"])
         
-        mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = 3, step = 3, budget = 3)
+        mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = 3, step = 5, budget = 30)
         code_file = mcts.search()
         results.append({
             "question_id": test_case["id"],

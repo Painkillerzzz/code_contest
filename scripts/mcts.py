@@ -58,7 +58,7 @@ class MCTSTree(Tree):
                 return node.action
             node.backpropagate(result)
             
-            # self.print_tree()
+            self.print_tree()
 
         return self.final_select()
 
