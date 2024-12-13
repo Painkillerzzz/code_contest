@@ -6,12 +6,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict
 
 
-def run_single_input(exe_file_path: str, input_data: str, timeout: int) -> Dict[str, str]:
+def run_single_input(exe_file_path: str, id: int, input_data: str, timeout: int) -> Dict[str, str]:
     """
     Run the compiled executable with a single input.
 
     Args:
         exe_file_path (str): Path to the compiled executable.
+        id (int): The ID of the input.
         input_data (str): The input to provide to the executable.
         timeout (int): Maximum execution time in seconds.
 
@@ -20,6 +21,7 @@ def run_single_input(exe_file_path: str, input_data: str, timeout: int) -> Dict[
     """
     start_time = time.time()
     result = {
+        "id": id,
         "stdout": "",
         "stderr": "",
         "error": "",
@@ -85,17 +87,18 @@ def run_code_with_inputs(code: str, inputs: List[str], timeout: int = 5) -> List
         # Check if compilation was successful
         if compile_process.returncode != 0:
             return [{
+                "id": id,
                 "stdout": "",
                 "stderr": compile_process.stderr,
                 "error": "Compilation failed",
                 "time_elapsed": 0
-            }] * len(inputs)
+            } for id, _ in enumerate(inputs)]
 
         # Run all inputs in parallel using ThreadPoolExecutor
         with ThreadPoolExecutor() as executor:
             future_to_input = {
-                executor.submit(run_single_input, exe_file_path, input_data, timeout): input_data
-                for input_data in inputs
+                executor.submit(run_single_input, exe_file_path, id, input_data, timeout): input_data
+                for id, input_data in enumerate(inputs)
             }
 
             for future in as_completed(future_to_input):
@@ -112,19 +115,24 @@ def run_code_with_inputs(code: str, inputs: List[str], timeout: int = 5) -> List
     except Exception as e:
         # Handle unexpected exceptions
         results = [{
+            "id": id,
             "stdout": "",
             "stderr": "",
             "error": str(e),
             "time_elapsed": 0
-        }] * len(inputs)
+        } for id, _ in enumerate(inputs)]
     finally:
         # Clean up temporary files
         if os.path.exists(cpp_file_path):
             os.remove(cpp_file_path)
         if os.path.exists(exe_file_path):
-            os.remove(exe_file_path)
+            try:
+                os.remove(exe_file_path)
+            except PermissionError:
+                time.sleep(0.1)  # Wait briefly and retry
+                os.remove(exe_file_path)
 
-    return results
+    return sorted(results, key=lambda x: x["id"])
 
 
 # Example usage
@@ -136,13 +144,14 @@ if __name__ == "__main__":
     using namespace std;
     int main() {
         int duration;
-        cin >> duration;
-        this_thread::sleep_for(chrono::seconds(duration));
+        int i;
+        cin >> duration >> i;
+        this_thread::sleep_for(chrono::seconds(duration / i));
         cout << "Slept for " << duration << " seconds." << endl;
         return 0;
     }
     """
-    inputs = ["3", "5", "2"]  # Each input represents a sleep duration
+    inputs = ["3 1", "5 1", "2 0"]  # Each input represents a sleep duration
     start_time = time.time()
     results = run_code_with_inputs(cpp_code, inputs)
     total_elapsed_time = time.time() - start_time

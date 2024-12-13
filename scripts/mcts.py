@@ -1,4 +1,5 @@
 import math
+from tqdm import tqdm
 from tree import Tree, TreeNode
 from typing import Optional
 
@@ -32,33 +33,47 @@ class MCTSNode(TreeNode):
             key=lambda child: child.value / (child.visit + 1e-6) +
             exploration_weight * math.sqrt(math.log(self.visit + 1) / (child.visit + 1e-6))
         )
+        
+    def bp_max(self, result):
+        """Propagate the result of a simulation up the tree."""
+        self.visit += 1
+        self.value = max(result, self.value)
+        if self.parent:
+            self.parent.bp_max(result)
 
-    def backpropagate(self, result):
+    def bp_acc(self, result):
         """Propagate the result of a simulation up the tree."""
         self.visit += 1
         self.value += result
         if self.parent:
-            self.parent.backpropagate(result)
+            self.parent.bp_acc(result)
 
 class MCTSTree(Tree):
-    def __init__(self, getAction, getReward, max_w = 3, step = 5 , budget = 50):
+    def __init__(self, getAction, getReward, max_w = 3, step = 5 , budget = 50, method = "max"):
         super().__init__(getAction, getReward, max_w, step, budget)
         self.root = MCTSNode()
+        self.method = method
+        if self.method not in ["max", "accumulate"]:
+            raise ValueError("Invalid method, should be 'max' or 'accumulate'")
 
     def search(self):
         """Perform MCTS search for a given number of iterations."""
-        while self.budget > 0:
+        for b in tqdm(range(self.budget, 0, -1)):
             node: MCTSNode = self.select()
-            max_a = min(self.budget, self.max_w)
+            max_a = min(b, self.max_w)
             node = node.expand(self.getAction, max_a, self.step)
-            self.budget -= 1
             result = self.getReward(node.action)
             node.score = result
             if result == 1.0:
                 return node.action
-            node.backpropagate(result)
+            if self.method == "max":
+                node.bp_max(result)
+            elif self.method == "accumulate":
+                node.bp_acc(result)
+            else:
+                raise ValueError("Invalid method")
             
-            self.print_tree()
+            # self.print_tree()
 
         return self.final_select()
 
