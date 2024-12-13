@@ -51,7 +51,7 @@ def run_single_input(exe_file_path: str, id: int, input_data: str, timeout: int)
     return result
 
 
-def run_code_with_inputs(code: str, inputs: List[str], timeout: int = 5) -> List[Dict[str, str]]:
+def run_code_with_inputs(code: str, inputs: List[str], timeout: int = 2) -> List[Dict[str, str]]:
     """
     Compile and run the provided C++11 code with multiple inputs in parallel, capturing output or errors.
 

@@ -1,0 +1,122 @@
+[
+    {
+        "question_id": 1,
+        "score": 1.0,
+        "revision": 2,
+        "budget": 4
+    },
+    {
+        "question_id": 2,
+        "score": 0.9,
+        "revision": 3,
+        "budget": 30
+    },
+    {
+        "question_id": 3,
+        "score": 1.0,
+        "revision": 2,
+        "budget": 11
+    },
+    {
+        "question_id": 4,
+        "score": 0.3,
+        "revision": 3,
+        "budget": 30
+    },
+    {
+        "question_id": 5,
+        "score": 0.1,
+        "revision": 3,
+        "budget": 30
+    },
+    {
+        "question_id": 6,
+        "score": 1.0,
+        "revision": 3,
+        "budget": 14
+    },
+    {
+        "question_id": 7,
+        "score": 1.0,
+        "revision": 1,
+        "budget": 1
+    },
+    {
+        "question_id": 8,
+        "score": 1.0,
+        "revision": 1,
+        "budget": 1
+    },
+    {
+        "question_id": 9,
+        "score": 0,
+        "revision": 0,
+        "budget": 30
+    },
+    {
+        "question_id": 10,
+        "score": 1.0,
+        "revision": 2,
+        "budget": 6
+    },
+    {
+        "question_id": 11,
+        "score": 1.0,
+        "revision": 1,
+        "budget": 1
+    },
+    {
+        "question_id": 12,
+        "score": 1.0,
+        "revision": 1,
+        "budget": 3
+    },
+    {
+        "question_id": 13,
+        "score": 0,
+        "revision": 0,
+        "budget": 30
+    },
+    {
+        "question_id": 14,
+        "score": 1.0,
+        "revision": 1,
+        "budget": 1
+    },
+    {
+        "question_id": 15,
+        "score": 0.5,
+        "revision": 2,
+        "budget": 30
+    },
+    {
+        "question_id": 16,
+        "score": 0,
+        "revision": 0,
+        "budget": 30
+    },
+    {
+        "question_id": 17,
+        "score": 1.0,
+        "revision": 1,
+        "budget": 1
+    },
+    {
+        "question_id": 18,
+        "score": 1.0,
+        "revision": 1,
+        "budget": 1
+    },
+    {
+        "question_id": 19,
+        "score": 0.5,
+        "revision": 2,
+        "budget": 30
+    },
+    {
+        "question_id": 20,
+        "score": 0,
+        "revision": 0,
+        "budget": 30
+    }
+]

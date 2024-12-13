@@ -1,0 +1,26 @@
+[
+    {
+        "question_id": 1,
+        "score": 1.0,
+        "revision": 0,
+        "budget": 4
+    },
+    {
+        "question_id": 2,
+        "score": 0.6,
+        "revision": 0,
+        "budget": 30
+    },
+    {
+        "question_id": 3,
+        "score": 1.0,
+        "revision": 0,
+        "budget": 15
+    },
+    {
+        "question_id": 4,
+        "score": 0.4,
+        "revision": 0,
+        "budget": 30
+    }
+]

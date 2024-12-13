@@ -14,7 +14,7 @@ class MCTSNode(TreeNode):
     def expand(self, getAction, max_a, step):
         """Expand the node by creating a new child node for an unexplored action."""
         if self.actions is None:
-            self.actions = set(getAction(self.state, max_a))
+            self.actions = set(getAction(max_a, self.state))
         
         action = self.actions.pop()
         

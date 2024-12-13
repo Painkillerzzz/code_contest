@@ -1,7 +1,6 @@
-import subprocess
-import json
+import json, os
 from tqdm import tqdm
-from typing import Any, Dict, List, Tuple
+from typing import Any, List
 from mcts import MCTSTree
 from evaluator import Evaluator
 from generator import Generator, GENERATOR_TYPE
@@ -128,14 +127,21 @@ if __name__ == "__main__":
     
     if method_name not in ["mcts", "vanilla"]:
         raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
-
+    
+    result_path = f"./results/data_{method_name}.json"
+    log_path = f"./results/log_{method_name}.json"
+    if os.path.isfile(result_path) and os.path.isfile(log_path):
+        with open(result_path, "r") as f:
+            results = json.load(f)
+        with open(log_path, "r") as f:
+            log = json.load(f)
+    else:
+        results = []
+        log = []
+        
     data = read_jsonl("./data/data.jsonl")
     
-    results = []
-    log = []
-    
-    for test_case in tqdm(data[:20], desc="Generating"):
-        
+    for test_case in tqdm(data[21:], desc="Generating"):
         # result = evaluate_problem(
         #     problem_description=test_case["description"],
         #     method=method_name,
@@ -189,7 +195,7 @@ if __name__ == "__main__":
         })
         print(f"Test Case {test_case['id']}: {score} {depth} {budget}")
         
-    with open(f"./results/data_{method_name}.json", "w") as f:
-        json.dump(results, f, indent=4)
-    with open(f"./results/log_{method_name}.json", "w") as f:
-        json.dump(log, f, indent=4)
+        with open(result_path, "w") as f:
+            json.dump(results, f, indent=4)
+        with open(log_path, "w") as f:
+            json.dump(log, f, indent=4)
