@@ -6,6 +6,10 @@ from mcts import MCTSTree
 from evaluator import Evaluator
 from generator import Generator, GENERATOR_TYPE
 from utils import read_jsonl, parse_args
+import yaml
+
+with open("config.yaml", "r") as file:
+    config = yaml.safe_load(file)
 
 def check_output(expected_output: Any, actual_output: Any) -> bool:
     return expected_output.strip() == actual_output.strip()
@@ -119,14 +123,18 @@ def solve_problem(problem_description: str, method: str = None, inputs: List[str
 if __name__ == "__main__":
     args = parse_args()
     model_name = args.model_name
-    # method_name = args.method_name
+    method_name = args.method_name
     # iterations = args.iterations
+    
+    if method_name not in ["mcts", "vanilla"]:
+        raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
 
     data = read_jsonl("./data/data.jsonl")
     
     results = []
+    log = []
     
-    for test_case in tqdm(data, desc="Generating"):
+    for test_case in tqdm(data[:20], desc="Generating"):
         
         # result = evaluate_problem(
         #     problem_description=test_case["description"],
@@ -146,12 +154,42 @@ if __name__ == "__main__":
         
         evaluator = Evaluator(test_case["inputs"], test_case["outputs"])
         
-        mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = 3, step = 5, budget = 30)
-        code_file = mcts.search()
+        if method_name == "mcts":
+            method_config = config["method"]["mcts"]
+            mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = method_config["max_w"], step = method_config["step"], budget = method_config["budget"])
+            code_file, score, depth, budget = mcts.search()
+        elif method_name == "vanilla":
+            method_config = config["method"]["vanilla"]
+            best_score = 0
+            code_file = ""
+            for b in tqdm(range(method_config["budget"]), desc="Vanilla"):
+                code = generator.generate_code()[0]
+                score = evaluator.evaluate_code(code)
+                budget = b + 1
+                if score >= best_score:
+                    best_score = score
+                    code_file = code
+                if score == 1.0:
+                    code_file = code
+                    break
+            depth = 0
+            score = best_score
+        else:
+            raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
+                
         results.append({
             "question_id": test_case["id"],
             "code_file": code_file,
         })
+        log.append({
+            "question_id": test_case["id"],
+            "score": score,
+            "revision": depth,
+            "budget": budget
+        })
+        print(f"Test Case {test_case['id']}: {score} {depth} {budget}")
         
-    with open("./results/data.json", "w") as f:
+    with open(f"./results/data_{method_name}.json", "w") as f:
         json.dump(results, f, indent=4)
+    with open(f"./results/log_{method_name}.json", "w") as f:
+        json.dump(log, f, indent=4)

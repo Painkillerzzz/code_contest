@@ -58,14 +58,14 @@ class MCTSTree(Tree):
 
     def search(self):
         """Perform MCTS search for a given number of iterations."""
-        for b in tqdm(range(self.budget, 0, -1)):
+        for b in tqdm(range(self.budget, 0, -1), desc="MCTS searching"):
             node: MCTSNode = self.select()
             max_a = min(b, self.max_w)
             node = node.expand(self.getAction, max_a, self.step)
             result = self.getReward(node.action)
             node.score = result
             if result == 1.0:
-                return node.action
+                return node.action, 1.0, node.depth, self.budget - b + 1
             if self.method == "max":
                 node.bp_max(result)
             elif self.method == "accumulate":
@@ -74,8 +74,10 @@ class MCTSTree(Tree):
                 raise ValueError("Invalid method")
             
             # self.print_tree()
+            
+        code, score, depth = self.final_select()
 
-        return self.final_select()
+        return code, score, depth, self.budget
 
     def select(self):
         """Select a node to expand based on the UCT formula."""
@@ -99,4 +101,4 @@ class MCTSTree(Tree):
 
         # Start traversal from the root and return the action of the best node
         best_node = traverse(self.root)
-        return best_node.action
+        return best_node.action, best_node.score, best_node.depth

@@ -187,7 +187,7 @@ class GLMGeneratorTree(Generator):
         super().__init__(problem_description)
 
     # Similar methods as GPT4Generator, adjusted for GLM model usage.
-    def generate_code(self, feedback: str = None, n: int = 1) -> List[str]:
+    def generate_code(self, n: int = 1, feedback: str = None) -> List[str]:
         if feedback:
             prompt = complete_prompt.format(problem_description=self.problem_description, incomplete_code=feedback)
         else:

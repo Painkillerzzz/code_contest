@@ -1,0 +1,9 @@
+
+method:
+    mcts:
+        max_w: 3
+        step: 5
+        budget: 30
+    
+    vanilla:
+        budget: 30

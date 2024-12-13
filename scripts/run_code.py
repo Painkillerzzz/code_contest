@@ -81,7 +81,7 @@ def run_code_with_inputs(code: str, inputs: List[str], timeout: int = 5) -> List
         # Compile the C++ code
         compile_cmd = ["g++", "-std=c++11", cpp_file_path, "-o", exe_file_path]
         compile_process = subprocess.run(
-            compile_cmd, capture_output=True, text=True
+            compile_cmd, capture_output=True, text=True, encoding="utf-8"
         )
 
         # Check if compilation was successful
@@ -114,6 +114,7 @@ def run_code_with_inputs(code: str, inputs: List[str], timeout: int = 5) -> List
 
     except Exception as e:
         # Handle unexpected exceptions
+        print("Unexpected exception:", e)
         results = [{
             "id": id,
             "stdout": "",

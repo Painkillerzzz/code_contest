@@ -2,3 +2,4 @@ tqdm
 openai
 zhipuai
 requests
+pyyaml
