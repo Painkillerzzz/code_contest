@@ -2,11 +2,13 @@ from typing import Optional
 
 # Definition of a TreeNode class to represent a node in the tree
 class TreeNode:
-    def __init__(self, state=None, action=None, parent=None):
+    def __init__(self, state = None, action = None, parent = None, score: float = 0):
         # The state (prompt) associated with this node
         self.state = state
         # The action taken (code accepted) to arrive at this node
         self.action = action
+        # The score provided by execution (reward)
+        self.score = score
         
         # A list of child nodes (initially empty)
         self.children: list[TreeNode] = []
@@ -17,8 +19,6 @@ class TreeNode:
         self.value = 0
         # The number of times this node has been visited
         self.visit = 0
-        # The score provided by execution (reward)
-        self.score = 0
         # The depth of this node in the tree (0 for the root, parent depth + 1 otherwise)
         self.depth = parent.depth + 1 if parent else 0
 

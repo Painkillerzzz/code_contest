@@ -58,7 +58,7 @@ The incomplete code is as follows. You should not modify the finished part.
 modify_prompt = """
 Provide a C++11 solution for the following competitive programming question: 
 {problem_description}
-Here is a previous version of your code. Check whether there are mistakes in it and correct them. You can also refract the code to make it better.
+Here is a previous version of your code. Check if there are mistakes in it and correct them. You can also refract the code to make it better.
 ```cpp
 {previous_code}
 ```

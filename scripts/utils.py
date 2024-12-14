@@ -42,9 +42,9 @@ def parse_args():
         argparse.Namespace: Parsed arguments.
     """
     parser = argparse.ArgumentParser(description="Code Evaluation Tool")
-    parser.add_argument('--model_name', type=str, required=True, help='Name of the model to use')
-    parser.add_argument('--method_name', type=str, help='Name of the method to execute')
-    parser.add_argument('--iterations', type=int, default=3, help='Number of iterations to perform')
+    parser.add_argument('-md', '--model_name', type=str, required=True, help='Name of the model to use')
+    parser.add_argument('-mt', '--method_name', type=str, help='Name of the method to execute')
+    parser.add_argument('-i', '--iterations', type=int, default=3, help='Number of iterations to perform')
     args = parser.parse_args()
     return args
 
