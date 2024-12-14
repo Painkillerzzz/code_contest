@@ -125,13 +125,18 @@ if __name__ == "__main__":
     method_name = args.method_name
     # iterations = args.iterations
     
-    if method_name not in ["mcts", "vanilla"]:
+    if method_name in ["mcts", "vanilla"]:
+        method_config = config["method"]["mcts"]
+    else:
         raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
     
-    result_path = f"./results/data_{method_name}.json"
-    log_path = f"./results/log_{method_name}.json"
-    if os.path.isfile(result_path) and os.path.isfile(log_path):
-        with open(result_path, "r") as f:
+    config_str = "_".join([method_name] + [f"{key[0]}_{value}" for key, value in method_config.items()])
+    result_path = os.path.join("./results", config_str)
+    os.makedirs(result_path, exist_ok=True)
+    code_path = os.path.join(result_path, f"code_{config_str}.json")
+    log_path = os.path.join(result_path, f"log_{config_str}.json")
+    if os.path.isfile(code_path) and os.path.isfile(log_path):
+        with open(code_path, "r") as f:
             results = json.load(f)
         with open(log_path, "r") as f:
             log = json.load(f)
@@ -141,7 +146,7 @@ if __name__ == "__main__":
         
     data = read_jsonl("./data/data.jsonl")
     
-    for test_case in tqdm(data[21:], desc="Generating"):
+    for test_case in tqdm(data, desc="Generating"):
         # result = evaluate_problem(
         #     problem_description=test_case["description"],
         #     method=method_name,
@@ -161,11 +166,9 @@ if __name__ == "__main__":
         evaluator = Evaluator(test_case["inputs"], test_case["outputs"])
         
         if method_name == "mcts":
-            method_config = config["method"]["mcts"]
             mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = method_config["max_w"], step = method_config["step"], budget = method_config["budget"])
-            code_file, score, depth, budget = mcts.search()
+            code_file, score, revision, budget = mcts.search()
         elif method_name == "vanilla":
-            method_config = config["method"]["vanilla"]
             best_score = 0
             code_file = ""
             for b in tqdm(range(method_config["budget"]), desc="Vanilla"):
@@ -178,7 +181,7 @@ if __name__ == "__main__":
                 if score == 1.0:
                     code_file = code
                     break
-            depth = 0
+            revision = 0
             score = best_score
         else:
             raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
@@ -190,12 +193,12 @@ if __name__ == "__main__":
         log.append({
             "question_id": test_case["id"],
             "score": score,
-            "revision": depth,
+            "revision": revision,
             "budget": budget
         })
-        print(f"Test Case {test_case['id']}: {score} {depth} {budget}")
+        print(f"Test Case {test_case['id']}: {score} {revision} {budget}")
         
-        with open(result_path, "w") as f:
+        with open(code_path, "w") as f:
             json.dump(results, f, indent=4)
         with open(log_path, "w") as f:
             json.dump(log, f, indent=4)
