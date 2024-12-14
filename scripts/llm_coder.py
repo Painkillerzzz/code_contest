@@ -126,7 +126,7 @@ if __name__ == "__main__":
     # iterations = args.iterations
     
     if method_name in ["mcts", "vanilla"]:
-        method_config = config["method"]["mcts"]
+        method_config = config["method"][method_name]
     else:
         raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
     
