@@ -11,23 +11,24 @@ class MCTSNode(TreeNode):
         """Check if all possible children have been expanded."""
         return self.actions is not None and len(self.actions) == 0
 
-    def expand(self, getAction, max_a, step):
+    def expand(self, getAction, max_a, step, policy = "append"):
         """Expand the node by creating a new child node for an unexplored action."""
         if self.actions is None:
-            self.actions = set(getAction(max_a, self.state))
+            self.actions = set(getAction(max_a, self.state,policy))
         
         action = self.actions.pop()
-        
-        split_action = action.split("\n")
-        action_steps = min(len(split_action), step * (self.depth + 1))
-        
-        child_state = "\n".join(split_action[:action_steps])
+        if policy == "append":
+            split_action = action.split("\n")
+            action_steps = min(len(split_action), step * (self.depth + 1))
+            child_state = "\n".join(split_action[:action_steps])
+        elif policy == "modify":
+            child_state = action
         child_node = MCTSNode(child_state, action, parent=self)
         self.children.append(child_node)
         return child_node
 
     def best_child(self, exploration_weight=1.0):
-        """Select the best child node using the UCT formula."""
+        """Select the best child node using the UCB formula."""
         return max(
             self.children,
             key=lambda child: child.value / (child.visit + 1e-6) +
@@ -49,19 +50,22 @@ class MCTSNode(TreeNode):
             self.parent.bp_acc(result)
 
 class MCTSTree(Tree):
-    def __init__(self, getAction, getReward, max_w = 3, step = 5 , budget = 50, method = "max"):
+    def __init__(self, getAction, getReward, max_w = 3, step = 5 , budget = 50, method = "max",derive_policy = "append"):
         super().__init__(getAction, getReward, max_w, step, budget)
         self.root = MCTSNode()
         self.method = method
+        self.derive_policy = derive_policy
         if self.method not in ["max", "accumulate"]:
             raise ValueError("Invalid method, should be 'max' or 'accumulate'")
+        if self.derive_policy not in ["append", "modify"]:
+            raise ValueError("Invalid derive_policy, should be 'append' or 'modify'")
 
     def search(self):
         """Perform MCTS search for a given number of iterations."""
         for b in tqdm(range(self.budget, 0, -1), desc="MCTS searching"):
             node: MCTSNode = self.select()
             max_a = min(b, self.max_w)
-            node = node.expand(self.getAction, max_a, self.step)
+            node = node.expand(self.getAction, max_a, self.step,self.derive_policy)
             result = self.getReward(node.action)
             node.score = result
             if result == 1.0:

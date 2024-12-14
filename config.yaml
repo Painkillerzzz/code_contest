@@ -4,6 +4,6 @@ method:
         max_w: 3
         step: 5
         budget: 30
-    
+        derive_policy: "modify"
     vanilla:
         budget: 30

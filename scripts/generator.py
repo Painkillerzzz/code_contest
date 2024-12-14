@@ -55,6 +55,16 @@ The incomplete code is as follows. You should not modify the finished part.
 ```
 """
 
+modify_prompt = """
+Provide a C++11 solution for the following competitive programming question: 
+{problem_description}
+Here is a previous version of your code. Check whether there are mistakes in it and correct them. You can also refract the code to make it better.
+```cpp
+{previous_code}
+```
+Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
+The standard is C++11, please do not use third-party libraries that are not included in the standard library.
+"""
 # Base class for code generation, which contains shared methods and attributes.
 class Generator:
     def __init__(self, problem_description):
@@ -187,9 +197,14 @@ class GLMGeneratorTree(Generator):
         super().__init__(problem_description)
 
     # Similar methods as GPT4Generator, adjusted for GLM model usage.
-    def generate_code(self, n: int = 1, feedback: str = None) -> List[str]:
+    def generate_code(self, n: int = 1, feedback: str = None, policy = "append") -> List[str]:
         if feedback:
-            prompt = complete_prompt.format(problem_description=self.problem_description, incomplete_code=feedback)
+            if policy == "append":
+                prompt = complete_prompt.format(problem_description=self.problem_description, incomplete_code=feedback)
+            elif policy == "modify":
+                prompt = modify_prompt.format(problem_description=self.problem_description, previous_code=feedback)
+            else :
+                raise ValueError("Invalid policy. Must be 'append' or 'modify'.")
         else:
             prompt = init_prompt.format(problem_description=self.problem_description)
         

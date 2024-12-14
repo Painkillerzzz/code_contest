@@ -162,7 +162,7 @@ if __name__ == "__main__":
         
         if method_name == "mcts":
             method_config = config["method"]["mcts"]
-            mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = method_config["max_w"], step = method_config["step"], budget = method_config["budget"])
+            mcts = MCTSTree(generator.generate_code, evaluator.evaluate_code, max_w = method_config["max_w"], step = method_config["step"], budget = method_config["budget"],derive_policy= method_config["derive_policy"])
             code_file, score, depth, budget = mcts.search()
         elif method_name == "vanilla":
             method_config = config["method"]["vanilla"]
