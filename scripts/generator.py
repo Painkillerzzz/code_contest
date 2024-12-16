@@ -3,30 +3,52 @@ import re
 import random
 
 # Initial prompt template for generating C++11 code based on a problem description.
-init_prompt = """
+init_prompt_en = """
 Provide a C++11 solution for the following competitive programming question: 
 {problem_description}
 Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
 The standard is C++11, please do not use third-party libraries that are not included in the standard library.
 """
 
+init_prompt = """
+以下是一个编程竞赛问题：
+{problem_description}
+请你提供一个 C++11 的答案。你的代码应该被三个反引号包围，像这样：```cpp YOUR CODE HERE```，且只用反引号包围你的代码。
+请你使用标准C++11，不要使用不在标准库中的第三方库。
+"""
+
+
 # Prompt template to provide feedback when the generated code fails tests.
-error_prompt = """Your code failed the following tests:
+error_prompt_en = """Your code failed the following tests:
 {error_description}
 Give it another try.
 Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
 The standard is C++11, please do not use third-party libraries that are not included in the standard library.
 """
 
+error_prompt = """你的代码在以下测例中出现错误：
+{error_description}
+请你重新提供答案，再试一次。
+你的代码应该被三个反引号包围，像这样：```cpp YOUR CODE HERE```，且只用反引号包围你的代码。
+请你使用标准C++11，不要使用不在标准库中的第三方库。
+"""
+
+
 # Prompt template to request critique and advice when code fails tests.
-critic_prompt = """
+critic_prompt_en = """
 Your code failed the following tests:
 {error_description}
 In this step, you DO NOT generate code. Instead, you are required to summarize the error messages and give advice on re-generating.
 """
 
+critic_prompt = """
+你的代码在以下测例中出现错误：
+{error_description}
+在这一步中，你不需要生成代码。相反，你需要总结错误信息并给出重新生成代码的建议。
+"""
+
 # Prompt template to request the selection of an algorithm category.
-select_ctg_prompt = """
+select_ctg_prompt_en = """
 Select an algorithm category for the following competitive programming question: 
 {problem_description}
 Available Choices:
@@ -34,8 +56,17 @@ Available Choices:
 You should directly and only output the name of the selected algorithm. NO OTHER WORDS. 
 """
 
+select_ctg_prompt = """
+选择一个算法类别，用于解决以下编程竞赛问题：
+{problem_description}
+以下是可用的选择：
+{algorithms}
+你应该直接且只输出所选算法的名称。不要输出其他内容。
+"""
+
+
 # Prompt template for generating Python code based on an algorithm description.
-exploit_alg_prompt = """
+exploit_alg_prompt_en = """
 Provide a C++11 solution for the following competitive programming question: 
 {problem_description}
 You can refer to the algorithm below:
@@ -43,8 +74,16 @@ You can refer to the algorithm below:
 Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
 """
 
+exploit_alg_prompt = """
+提供一个 C++11 的答案，用于解决以下编程竞赛问题：
+{problem_description}
+你可以参考以下算法：
+{algorithm_description}
+你的代码应该被三个反引号包围，像这样：```cpp YOUR CODE HERE```，且只用反引号包围你的代码。
+"""
+
 # Complete prompt template for generating C++11 code based on a problem description.
-complete_prompt = """
+complete_prompt_en = """
 Complete an incomplete C++11 solution for the following competitive programming question: 
 {problem_description}
 Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
@@ -55,7 +94,18 @@ The incomplete code is as follows. You should not modify the finished part.
 ```
 """
 
-modify_prompt = """
+complete_prompt = """
+提供一个 C++11 的答案，用于解决以下编程竞赛问题：
+{problem_description}
+你需要完成下面的不完整代码。你不应该修改已完成的部分。
+```cpp
+{incomplete_code}
+```
+你的代码应该被三个反引号包围，像这样：```cpp YOUR CODE HERE```，且只用反引号包围你的代码。
+请你使用标准C++11，不要使用不在标准库中的第三方库。
+"""
+
+modify_prompt_en = """
 Provide a C++11 solution for the following competitive programming question: 
 {problem_description}
 Here is a previous version of your code. Check if there are mistakes in it and correct them. You can also refract the code to make it better.
@@ -66,14 +116,32 @@ Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE`
 The standard is C++11, please do not use third-party libraries that are not included in the standard library.
 """
 
-cot_init_prompt = """
+modify_prompt = """
+提供一个 C++11 的答案，用于解决以下编程竞赛问题：
+{problem_description}
+这是你之前的代码版本。检查是否有错误并加以纠正。你也可以重构代码以使其更好。
+```cpp
+{previous_code}
+```
+你的代码应该被三个反引号包围，像这样：```cpp YOUR CODE HERE```，且只用反引号包围你的代码。
+请你使用标准C++11，不要使用不在标准库中的第三方库。
+"""
+
+cot_init_prompt_en = """
 Here is a competitive programming question:
 {problem_description}
 Analyze the problem and provide your thoughts on the data structures and algorithms that could be used to solve it.
 Remember: Your answer should be concise and to the point. Do not provide any code.
 """
 
-cot_append_prompt = """
+cot_init_prompt = """
+以下是一个编程竞赛问题：
+{problem_description}
+请分析问题并提供你对解决问题可能使用的数据结构和算法的看法。
+注意：你的回答应该简洁明了，不要提供任何代码。
+"""
+
+cot_append_prompt_en = """
 Here is a competitive programming question:
 {problem_description}
 Your teammates has already provided the following thoughts on the problem:
@@ -82,7 +150,17 @@ Please provide your thoughts on the problem.
 Remember: Your answer should be concise and to the point. Do not provide any code.
 """
 
-cot_generate_prompt = """
+cot_append_prompt = """
+以下是一个编程竞赛问题：
+{problem_description}
+你的队友已经提供了以下关于问题的想法：
+{previous_thoughts}
+请提供你对问题的看法。
+注意：你的回答应该简洁明了，不要提供任何代码。
+"""
+
+
+cot_generate_prompt_en = """
 Provide a C++11 solution for the following competitive programming question: 
 {problem_description}
 Your teammates has already provided the following thoughts on the problem:
@@ -91,6 +169,18 @@ Please generate a C++11 solution for the problem.
 Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
 The standard is C++11, please do not use third-party libraries that are not included in the standard library.
 """
+
+cot_generate_prompt = """
+提供一个 C++11 的答案，用于解决以下编程竞赛问题：
+{problem_description}
+你的队友已经提供了以下关于问题的想法：
+{previous_thoughts}
+请提供一个 C++11 的解决方案。
+你的代码应该被三个反引号包围，像这样：```cpp YOUR CODE HERE```，且只用反引号包围你的代码。
+请你使用标准C++11，不要使用不在标准库中的第三方库。
+"""
+
+
 # Base class for code generation, which contains shared methods and attributes.
 class Generator:
     def __init__(self, problem_description):
