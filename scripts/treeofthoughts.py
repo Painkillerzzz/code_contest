@@ -26,8 +26,12 @@ class ToTNode(TreeNode):
             self.actions = set(getAction(max_a, self.state, policy))
         
         action = self.actions.pop()
-        result, child_state = rollout(action,self.state)
+        if policy == "append":
+            result, child_state = rollout(action,self.state)
+        elif policy == "modify":
+            result, child_state = rollout(action)
         reward = getReward(result)
+
         child_node = ToTNode(child_state, action, self, reward, False, result)
         self.children.append(child_node)
         
@@ -80,7 +84,7 @@ class TreeofToughts(Tree):
             node, reward = node.expand(self.getAction, self.getReward, self.rollout, max_a, self.step, self.derive_policy)
             if reward == 1.0:
                 # self.print_tree()
-                return node.action, 1.0, node.depth - 1, self.budget - b + 1
+                return node.result, 1.0, node.depth - 1, self.budget - b + 1
             node.bp(reward, self.bp_policy)
             if self.root.length_exceeded:
                 code, score, revision = self.final_select()

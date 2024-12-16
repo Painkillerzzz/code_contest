@@ -13,3 +13,4 @@ method:
         step: 5
         budget: 30
         bp_policy: "max"
+        derive_policy: "modify"

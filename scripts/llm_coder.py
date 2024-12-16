@@ -185,11 +185,12 @@ if __name__ == "__main__":
             revision = 0
             score = best_score
         elif method_name == "tot":
-            tot = TreeofToughts(generator.generate_thoughts,evaluator.evaluate_code,generator.generate_code_w_thoughts, max_w = method_config["max_w"], step = method_config["step"], budget = method_config["budget"], bp_policy=method_config["bp_policy"])
+            tot = TreeofToughts(generator.generate_thoughts,evaluator.evaluate_code,generator.generate_code_w_thoughts, max_w = method_config["max_w"], step = method_config["step"], budget = method_config["budget"], bp_policy=method_config["bp_policy"], derive_policy=method_config["derive_policy"])
             code_file, score, revision, budget = tot.search()
+            print(code_file)
         else:
             raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
-                
+        
         results.append({
             "question_id": test_case["id"],
             "code_file": code_file,

@@ -159,6 +159,14 @@ cot_append_prompt = """
 注意：你的回答应该简洁明了，不要提供任何代码。
 """
 
+cot_modify_prompt = """
+以下是一个编程竞赛问题：
+{problem_description}
+你的队友已经提供了以下关于问题的想法：
+{previous_thoughts}
+请你更改你认为上述看法中出现的错误，并总结出你对该问题的看法。
+注意：你的回答应该简洁明了，不要提供任何代码。
+"""
 
 cot_generate_prompt_en = """
 Provide a C++11 solution for the following competitive programming question: 
@@ -334,7 +342,12 @@ class GLMGeneratorTree(Generator):
         return [self._extract_c_code(response) for response in rsp_list]
     def generate_thoughts(self, n : int = 1, feedback: list[str] = [], policy = "append") -> List[str]:
         if feedback and len(feedback) > 0:
-            prompt = cot_append_prompt.format(problem_description=self.problem_description,previous_thoughts="\n\n".join(feedback) )
+            if policy == "append":
+                prompt = cot_append_prompt.format(problem_description=self.problem_description,previous_thoughts="\n\n".join(feedback) )
+            elif policy == "modify":
+                prompt = cot_modify_prompt.format(problem_description=self.problem_description, previous_thoughts="\n\n".join(feedback))
+            else :
+                raise ValueError("Invalid policy. Must be 'append' or 'modify'.") 
         else:
             prompt = cot_init_prompt.format(problem_description=self.problem_description)
         message = {"role": "user", "content": prompt}
@@ -347,7 +360,6 @@ class GLMGeneratorTree(Generator):
             thoughts.append(thought)
         prompt = cot_generate_prompt.format(problem_description=self.problem_description, previous_thoughts="\n\n".join(thoughts))
         message = {"role": "user", "content": prompt}
-        print(prompt)
         response = generate_response(messages=[message])[0]
         return self._extract_c_code(response), thoughts
 # Dictionary mapping generator types to their respective classes.
