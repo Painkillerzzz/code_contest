@@ -28,7 +28,7 @@ class TreeNode:
 
 # Definition of a Tree class to manage the entire tree structure
 class Tree:
-    def __init__(self, getAction, getReward, max_w=3, step=5, budget=50):
+    def __init__(self, getAction, getReward, rollout, max_w=3, step=5, budget=50):
         # Initialize the root of the tree with the given initial state (prompt)
         self.root = TreeNode()
 
@@ -43,7 +43,8 @@ class Tree:
         self.getAction = getAction
         # Function to run the code and get the reward
         self.getReward = getReward
-        
+        # Function to generate the result and next state
+        self.rollout = rollout
     def print_tree(self, node=None, indent="#####\n", level=0):
         """Print the tree structure starting from a given node."""
         if node is None:

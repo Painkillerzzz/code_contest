@@ -65,6 +65,32 @@ Here is a previous version of your code. Check if there are mistakes in it and c
 Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
 The standard is C++11, please do not use third-party libraries that are not included in the standard library.
 """
+
+cot_init_prompt = """
+Here is a competitive programming question:
+{problem_description}
+Analyze the problem and provide your thoughts on the data structures and algorithms that could be used to solve it.
+Remember: Your answer should be concise and to the point. Do not provide any code.
+"""
+
+cot_append_prompt = """
+Here is a competitive programming question:
+{problem_description}
+Your teammates has already provided the following thoughts on the problem:
+{previous_thoughts}
+Please provide your thoughts on the problem.
+Remember: Your answer should be concise and to the point. Do not provide any code.
+"""
+
+cot_generate_prompt = """
+Provide a C++11 solution for the following competitive programming question: 
+{problem_description}
+Your teammates has already provided the following thoughts on the problem:
+{previous_thoughts}
+Please generate a C++11 solution for the problem.
+Your code should be enclosed in triple backticks like so: ```cpp YOUR CODE HERE```. Use the backticks for your code only.
+The standard is C++11, please do not use third-party libraries that are not included in the standard library.
+"""
 # Base class for code generation, which contains shared methods and attributes.
 class Generator:
     def __init__(self, problem_description):
@@ -74,7 +100,12 @@ class Generator:
     # Abstract method for generating code; must be implemented in subclasses.
     def generate_code(self, feedback: str=None) -> str:
         raise NotImplementedError("This method should be implemented by subclasses.")
-    
+    # Abstract method for generating thoughts; must be implemented in subclasses.
+    def generate_thoughts(self, feedback: str=None) -> str:
+        raise NotImplementedError("This method should be implemented by subclasses.")
+    # Abstract method for generating code with previous thoughts; must be implemented in subclasses.
+    def generate_code_w_thoughts(self, feedback: str=None) -> str:
+        raise NotImplementedError("This method should be implemented by subclasses.")
     # Abstract method for self-criticism; must be implemented in subclasses.
     def self_criticize(self, feedback: str) -> str:
         raise NotImplementedError("This method should be implemented by subclasses.")
@@ -211,7 +242,24 @@ class GLMGeneratorTree(Generator):
         message = {"role": "user", "content": prompt}
         rsp_list = generate_response(messages=[message], n=n)
         return [self._extract_c_code(response) for response in rsp_list]
-
+    def generate_thoughts(self, n : int = 1, feedback: list[str] = [], policy = "append") -> List[str]:
+        if feedback and len(feedback) > 0:
+            prompt = cot_append_prompt.format(problem_description=self.problem_description,previous_thoughts="\n\n".join(feedback) )
+        else:
+            prompt = cot_init_prompt.format(problem_description=self.problem_description)
+        message = {"role": "user", "content": prompt}
+        rsp_list = generate_response(messages=[message], n=n)
+        return rsp_list
+    def generate_code_w_thoughts(self, thought:str = "", thoughts: list[str] = []):
+        if thoughts == None or len(thoughts) == 0:
+            thoughts = [thought]
+        else:
+            thoughts.append(thought)
+        prompt = cot_generate_prompt.format(problem_description=self.problem_description, previous_thoughts="\n\n".join(thoughts))
+        message = {"role": "user", "content": prompt}
+        print(prompt)
+        response = generate_response(messages=[message])[0]
+        return self._extract_c_code(response), thoughts
 # Dictionary mapping generator types to their respective classes.
 GENERATOR_TYPE = {
     "gpt-4o": GPT4Generator,

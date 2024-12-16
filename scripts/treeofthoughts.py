@@ -2,34 +2,33 @@ import math
 from tqdm import tqdm
 from tree import Tree, TreeNode
 
-class MCTSNode(TreeNode):
-    def __init__(self, state = None, action = None, parent = None, score = 0, length_exceeded = False):
+class ToTNode(TreeNode):
+    def __init__(self, state = None, action = None, parent = None, score = 0, length_exceeded = False, result = None):
         super().__init__(state, action, parent, score)
         self.length_exceeded = length_exceeded
-
+        self.result = result
     def is_fully_expanded(self):
         """Check if all possible children have been expanded."""
         return self.actions is not None and len(self.actions) == 0
-
-    def expand(self, getAction, getReward, max_a, step, policy = "append"):
-        """Expand the node by creating a new child node for an unexplored action."""
+    
+    def expand(self, getAction, getReward, rollout, max_a, step, policy = "append"):
+        """
+        Expand the node by creating a new child node for an unexplored action.
+        Parameters:
+            getAction: (max_a, state, policy) -> list of actions
+            getReward: (result) -> reward
+            rollout: (action, state) -> (result, child_state)
+            max_a: int, maximum number of actions
+            step: int, number of steps
+            policy: str, "append" or "modify"
+        """
         if self.actions is None:
             self.actions = set(getAction(max_a, self.state, policy))
         
         action = self.actions.pop()
-        reward = getReward(action)
-        if policy == "append":
-            split_action = action.split("\n")
-            if len(split_action) <= step * (self.depth + 1):
-                child_state = action
-                length_exceeded = True
-            else:
-                child_state = "\n".join(split_action[:step * (self.depth + 1)])
-                length_exceeded = False
-        elif policy == "modify":
-            child_state = action
-            length_exceeded = False
-        child_node = MCTSNode(child_state, action, self, reward, length_exceeded)
+        result, child_state = rollout(action,self.state)
+        reward = getReward(result)
+        child_node = ToTNode(child_state, action, self, reward, False, result)
         self.children.append(child_node)
         
         return child_node, reward
@@ -39,7 +38,7 @@ class MCTSNode(TreeNode):
         return max(
             [child for child in self.children if not child.length_exceeded],
             key=lambda child: child.value / (child.visit + 1e-6) +
-                exploration_weight * math.sqrt(math.log(self.visit + 1) / (child.visit + 1e-6))
+                exploration_weight * math.sqrt(2 * math.log(self.visit + 1) / (child.visit + 1e-6))
         )
         
     def bp(self, reward, policy):
@@ -63,11 +62,10 @@ class MCTSNode(TreeNode):
         if self.parent:
             self.parent.bp(reward, policy)
 
-
-class MCTSTree(Tree):
-    def __init__(self, getAction, getReward, max_w = 3, step = 5, budget = 50, bp_policy="max", derive_policy = "append"):
-        super().__init__(getAction, getReward, None, max_w, step, budget)
-        self.root = MCTSNode()
+class TreeofToughts(Tree):
+    def __init__(self, getAction, getReward, rollout, max_w = 3, step = 5, budget = 30, bp_policy="max", derive_policy = "append"):
+        super().__init__(getAction, getReward, rollout, max_w, step, budget)
+        self.root = ToTNode()
         self.bp_policy = bp_policy
         self.derive_policy = derive_policy
         if self.bp_policy not in ["max", "accumulate"]:
@@ -76,10 +74,10 @@ class MCTSTree(Tree):
             raise ValueError("Invalid derive_policy, should be 'append' or 'modify'")
     def search(self):
         """Perform MCTS search for a given number of iterations."""
-        for b in tqdm(range(self.budget, 0, -1), desc="MCTS searching"):
-            node: MCTSNode = self.select()
+        for b in tqdm(range(self.budget, 0, -1), desc="ToT searching"):
+            node: ToTNode = self.select()
             max_a = min(b, self.max_w)
-            node, reward = node.expand(self.getAction, self.getReward, max_a, self.step, self.derive_policy)
+            node, reward = node.expand(self.getAction, self.getReward, self.rollout, max_a, self.step, self.derive_policy)
             if reward == 1.0:
                 # self.print_tree()
                 return node.action, 1.0, node.depth - 1, self.budget - b + 1
@@ -106,11 +104,11 @@ class MCTSTree(Tree):
     
     def final_select(self):
         """Traverse the entire tree and select the node with the highest score."""
-        def traverse(node: MCTSNode):
+        def traverse(node: ToTNode):
             """Recursively traverse the tree to find the node with the highest score."""
             best_node = node
             for child in node.children:
-                candidate: MCTSNode = traverse(child)
+                candidate: ToTNode = traverse(child)
                 if candidate.score > best_node.score:
                     best_node = candidate
                 elif candidate.score == best_node.score and candidate.depth > best_node.score:
@@ -119,4 +117,4 @@ class MCTSTree(Tree):
 
         # Start traversal from the root and return the action of the best node
         best_node = traverse(self.root)
-        return best_node.action, best_node.score, best_node.depth - 1
+        return best_node.result, best_node.score, best_node.depth - 1

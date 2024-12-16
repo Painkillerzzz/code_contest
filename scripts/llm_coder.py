@@ -2,6 +2,7 @@ import json, os
 from tqdm import tqdm
 from typing import Any, List
 from mcts import MCTSTree
+from treeofthoughts import TreeofToughts
 from evaluator import Evaluator
 from generator import Generator, GENERATOR_TYPE
 from utils import read_jsonl, parse_args
@@ -125,7 +126,7 @@ if __name__ == "__main__":
     method_name = args.method_name
     # iterations = args.iterations
     
-    if method_name in ["mcts", "vanilla"]:
+    if method_name in ["mcts", "vanilla","tot"]:
         method_config = config["method"][method_name]
     else:
         raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
@@ -183,6 +184,9 @@ if __name__ == "__main__":
                     break
             revision = 0
             score = best_score
+        elif method_name == "tot":
+            tot = TreeofToughts(generator.generate_thoughts,evaluator.evaluate_code,generator.generate_code_w_thoughts, max_w = method_config["max_w"], step = method_config["step"], budget = method_config["budget"], bp_policy=method_config["bp_policy"])
+            code_file, score, revision, budget = tot.search()
         else:
             raise ValueError(f"Method {method_name} not supported, choose from: mcts, vanilla")
                 

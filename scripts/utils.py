@@ -8,7 +8,7 @@ from typing import List, Dict, Any
 
 client = ZhipuAI(api_key="98903f4152cd6b8cc8a1d4d16ff11a59.JO98BUYm6Bl4YVFf")
 
-def generate_response(messages: List[Dict[str, str]], n: int = 1) -> str:
+def generate_response(messages: List[Dict[str, str]], n: int = 1) -> List[str]:
     """
     Generate a response from the model using the provided messages.
 

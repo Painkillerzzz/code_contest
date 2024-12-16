@@ -167,3 +167,4 @@ tmp/*
 code/*
 
 *.out
+results/

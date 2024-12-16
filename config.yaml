@@ -8,3 +8,8 @@ method:
         derive_policy: "modify"
     vanilla:
         budget: 30
+    tot:
+        max_w: 3
+        step: 5
+        budget: 30
+        bp_policy: "max"
