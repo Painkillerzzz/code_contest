@@ -25,7 +25,7 @@ def generate_response(messages: List[Dict[str, str]], n: int = 1) -> str:
             response = client.chat.completions.create(
                 model="codegeex-4",  # Specify the model to use.
                 messages=messages,  # Provide the conversation history.
-                temperature=0.9,  # Set temperature for deterministic responses.
+                temperature=1.0,  # Set temperature for deterministic responses.
             ).choices[0].message.content
             rsp_list.append(response)
         except:

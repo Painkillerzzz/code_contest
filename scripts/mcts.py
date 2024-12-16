@@ -74,8 +74,6 @@ class MCTSTree(Tree):
             raise ValueError("Invalid BP policy, should be 'max' or 'accumulate'")
         if self.derive_policy not in ["append", "modify"]:
             raise ValueError("Invalid derive_policy, should be 'append' or 'modify'")
-        print("MCTS initialized with BP policy:", self.bp_policy)
-        print("MCTS initialized with derive policy:", self.derive_policy)
     def search(self):
         """Perform MCTS search for a given number of iterations."""
         for b in tqdm(range(self.budget, 0, -1), desc="MCTS searching"):
@@ -83,13 +81,15 @@ class MCTSTree(Tree):
             max_a = min(b, self.max_w)
             node, reward = node.expand(self.getAction, self.getReward, max_a, self.step, self.derive_policy)
             if reward == 1.0:
+                # self.print_tree()
                 return node.action, 1.0, node.depth - 1, self.budget - b + 1
             node.bp(reward, self.bp_policy)
             if self.root.length_exceeded:
                 code, score, revision = self.final_select()
+                # self.print_tree()
                 return code, score, revision, self.budget - b + 1
             
-        self.print_tree()
+        # self.print_tree()
             
         code, score, revision = self.final_select()
 
