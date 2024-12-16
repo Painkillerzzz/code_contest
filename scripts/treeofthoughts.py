@@ -42,7 +42,7 @@ class ToTNode(TreeNode):
         return max(
             [child for child in self.children if not child.length_exceeded],
             key=lambda child: child.value / (child.visit + 1e-6) +
-                exploration_weight * math.sqrt(2 * math.log(self.visit + 1) / (child.visit + 1e-6))
+                exploration_weight * math.sqrt(math.log(self.visit + 1) / (child.visit + 1e-6))
         )
         
     def bp(self, reward, policy):
