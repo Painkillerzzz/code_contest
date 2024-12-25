@@ -11,7 +11,7 @@ class ToTNode(TreeNode):
         """Check if all possible children have been expanded."""
         return self.actions is not None and len(self.actions) == 0
     
-    def expand(self, getAction, getReward, rollout, max_a, step, policy = "append"):
+    def expand(self, getAction, getReward, rollout, max_a, step, policy = "append", rollout_num = 1):
         """
         Expand the node by creating a new child node for an unexplored action.
         Parameters:
@@ -26,13 +26,23 @@ class ToTNode(TreeNode):
             self.actions = set(getAction(max_a, self.state, policy))
         
         action = self.actions.pop()
-        if policy == "append":
-            result, child_state = rollout(action,self.state)
-        elif policy == "modify":
-            result, child_state = rollout(action)
-        reward = getReward(result)
-
-        child_node = ToTNode(child_state, action, self, reward, False, result)
+        max_reward = float("-inf")
+        total_reward = 0
+        final_child = None
+        final_result = None
+        for _ in range(rollout_num):
+            if policy == "append":
+                result, child_state = rollout(action,self.state)
+            elif policy == "modify":
+                result, child_state = rollout(action)
+            reward = getReward(result)
+            if reward > max_reward:
+                max_reward = reward
+                final_child = child_state
+                final_result = result
+            total_reward += reward
+        
+        child_node = ToTNode(final_child, action, self, total_reward/rollout_num, False, final_result)
         self.children.append(child_node)
         
         return child_node, reward
@@ -67,21 +77,22 @@ class ToTNode(TreeNode):
             self.parent.bp(reward, policy)
 
 class TreeofToughts(Tree):
-    def __init__(self, getAction, getReward, rollout, max_w = 3, step = 5, budget = 30, bp_policy="max", derive_policy = "append"):
+    def __init__(self, getAction, getReward, rollout, max_w = 3, step = 5, budget = 30, bp_policy="max", derive_policy = "append", rollout_num = 1):
         super().__init__(getAction, getReward, rollout, max_w, step, budget)
         self.root = ToTNode()
         self.bp_policy = bp_policy
         self.derive_policy = derive_policy
+        self.rollout_num = rollout_num
         if self.bp_policy not in ["max", "accumulate"]:
             raise ValueError("Invalid BP policy, should be 'max' or 'accumulate'")
         if self.derive_policy not in ["append", "modify"]:
             raise ValueError("Invalid derive_policy, should be 'append' or 'modify'")
     def search(self):
         """Perform MCTS search for a given number of iterations."""
-        for b in tqdm(range(self.budget, 0, -1), desc="ToT searching"):
+        for b in tqdm(range(self.budget, 0, -self.rollout_num), desc="ToT searching"):
             node: ToTNode = self.select()
             max_a = min(b, self.max_w)
-            node, reward = node.expand(self.getAction, self.getReward, self.rollout, max_a, self.step, self.derive_policy)
+            node, reward = node.expand(self.getAction, self.getReward, self.rollout, max_a, self.step, self.derive_policy, self.rollout_num)
             if reward == 1.0:
                 # self.print_tree()
                 return node.result, 1.0, node.depth - 1, self.budget - b + 1

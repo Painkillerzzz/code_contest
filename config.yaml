@@ -11,6 +11,7 @@ method:
     tot:
         max_w: 3
         step: 5
-        budget: 30
+        budget: 100
         bp_policy: "max"
         derive_policy: "modify"
+        rollout_num: 3
