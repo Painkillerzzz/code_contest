@@ -70,4 +70,4 @@ To use the project, you need to install the required packages and run the follow
 
    Note: This API provide by the organizers is unbelivably slow.
 
-## Evaluation
+## Paper (Report)[https://github.com/Painkillerzzz/code_contest/blob/master/Reinforced_Learning_Project_Report.pdf]
